@@ -149,11 +149,13 @@ function renderProfileList(data) {
 
 async function selectProfile(profileId) {
   try {
+    // Highlight the selected profile in the left panel
     document.querySelectorAll('#profile-list .profile-item')
       .forEach(el => {
         el.classList.toggle('active', el.dataset.id === profileId);
       });
 
+    // 1. Fetch the main profile details
     const { data: profile, error: profileError } = await db
       .from('profiles')
       .select('*')
@@ -162,13 +164,33 @@ async function selectProfile(profileId) {
 
     if (profileError) throw profileError;
 
-    const { data: friends, error: friendsError } = await db
+    // 2. Fetch all friend relationships involving this person
+    const { data: friendLinks, error: friendsError } = await db
       .from('friends')
-      .select('profile_id, friend_id, profiles!friends_friend_id_fkey(name)')
+      .select('profile_id, friend_id')
       .or(`profile_id.eq.${profileId},friend_id.eq.${profileId}`);
 
     if (friendsError) throw friendsError;
 
+    // 3. Extract the IDs of the *other* people in those relationships
+    const friendIds = friendLinks.map(link => 
+        link.profile_id === profileId ? link.friend_id : link.profile_id
+    );
+
+    // 4. Fetch the actual names of those friends using their IDs
+    let friends = [];
+    if (friendIds.length > 0) {
+        const { data: profiles, error: namesError } = await db
+            .from('profiles')
+            .select('name')
+            .in('id', friendIds)
+            .order('name', { ascending: true });
+
+        if (namesError) throw namesError;
+        friends = profiles; // This returns an array like: [{ name: "Ada Lovelace" }]
+    }
+
+    // 5. Display the profile and their correctly named friends
     displayProfile(profile, friends);
 
     if (window.innerWidth < 768) {

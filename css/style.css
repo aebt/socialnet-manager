@@ -1,9 +1,7 @@
-/* css/style.css */
-
 :root {
   --font-heading: 'Source Serif 4', Georgia, serif;
   --font-body: 'DM Sans', system-ui, sans-serif;
-  --clr-header-bg: #2b4c8a; /* Matched to screenshot */
+  --clr-header-bg: #2b4c8a;
   --clr-page-bg: #e2e8f0;
   --clr-panel-bg: #ffffff;
   --clr-panel-border: #cbd5e1;
@@ -12,25 +10,19 @@
   --statusbar-h: 30px;
 }
 
-html, body { 
-  scroll-behavior: smooth; 
-  height: 100vh;
-  margin: 0;
+/* =========================================================
+   MOBILE FIRST LAYOUT (Allows normal vertical scrolling)
+   ========================================================= */
+html, body {
+  scroll-behavior: smooth;
   background-color: var(--clr-page-bg);
   font-family: var(--font-body);
-  display: flex;
-  flex-direction: column;
+  margin: 0;
+  /* Notice: NO height: 100vh and NO overflow: hidden here! */
 }
 
-.font-serif {
-  font-family: var(--font-heading);
-}
-
-#app-header {
-  background-color: var(--clr-header-bg);
-  min-height: var(--header-h);
-}
-
+.font-serif { font-family: var(--font-heading); }
+#app-header { background-color: var(--clr-header-bg); min-height: var(--header-h); }
 #status-bar {
   background-color: var(--clr-header-bg);
   min-height: var(--statusbar-h);
@@ -41,20 +33,48 @@ html, body {
   padding: 0 1rem;
 }
 
-#app-wrapper {
-  overflow: hidden;
-}
-
-/* Panel card styling */
-.sn-panel { 
+.sn-panel {
   background: var(--clr-panel-bg);
   border: 1px solid var(--clr-panel-border);
   border-radius: 6px;
   padding: 1.25rem;
   box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-  min-height: 0;
+  margin-bottom: 1rem; /* Adds spacing between stacked panels on mobile */
 }
 
+.profile-list-box {
+  max-height: 300px; /* Forces scrolling inside the profile list on mobile */
+  overflow-y: auto;
+}
+
+/* =========================================================
+   DESKTOP LAYOUT (Locks to screen height, side-by-side)
+   ========================================================= */
+@media (min-width: 768px) {
+  html, body {
+    height: 100vh;
+    overflow: hidden; /* Prevents page scroll on desktop */
+    display: flex;
+    flex-direction: column;
+  }
+  #app-wrapper {
+    height: calc(100vh - var(--header-h) - var(--statusbar-h));
+    overflow: hidden;
+  }
+  .sn-panel {
+    height: 100%;
+    margin-bottom: 0;
+  }
+  .profile-list-box {
+    max-height: none;
+    flex: 1 1 0;
+    min-height: 0; /* Critical for flexbox scrolling */
+  }
+}
+
+/* =========================================================
+   COMPONENTS
+   ========================================================= */
 .sn-panel-title {
   font-size: 0.75rem;
   font-weight: 700;
@@ -66,20 +86,21 @@ html, body {
   margin-bottom: 1rem;
 }
 
-.sn-label {
-  font-size: 0.8rem;
-  color: #475569;
-  margin-bottom: 0.25rem;
+.sn-label { 
+    font-size: 0.8rem; 
+    color: #475569; 
+    margin-bottom: 0.25rem; 
 }
 
-.sn-btn-blue {
-  background-color: #2b4c8a;
-  color: white;
-  border: none;
+.sn-btn-blue { 
+    background-color: #2b4c8a; 
+    color: white; 
+    border: none; 
 }
-.sn-btn-blue:hover {
-  background-color: #1e3a6e;
-  color: white;
+
+.sn-btn-blue:hover { 
+    background-color: #1e3a6e; 
+    color: white; 
 }
 
 .sn-textbox {
@@ -91,15 +112,13 @@ html, body {
   background-color: #fff;
 }
 
-/* Profile picture display */
-.profile-thumb {
-  width: 72px;
-  height: 72px;
-  border-radius: 50%;
-  object-fit: cover;
+.profile-thumb { 
+    width: 72px; 
+    height: 72px; 
+    border-radius: 50%; 
+    object-fit: cover; 
 }
 
-/* Profile List Item */
 .profile-item {
   cursor: pointer;
   border: none;
@@ -109,9 +128,7 @@ html, body {
   align-items: center;
 }
 
-.profile-item:hover {
-  background-color: #f8fafc;
-}
+.profile-item:hover { background-color: #f8fafc; }
 
 .profile-item.active {
   background-color: var(--clr-blue) !important;
@@ -119,16 +136,10 @@ html, body {
   border-color: var(--clr-blue) !important;
 }
 
-.list-avatar {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  object-fit: cover;
-  margin-right: 10px;
-}
-
-.profile-list-box {
-  flex: 1 1 0;
-  min-height: 0; 
-  overflow-y: auto;
+.list-avatar { 
+    width: 30px; 
+    height: 30px; 
+    border-radius: 50%; 
+    object-fit: cover; 
+    margin-right: 10px; 
 }

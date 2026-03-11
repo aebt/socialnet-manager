@@ -64,7 +64,6 @@ function renderFriendsList(friends) {
 // Section 4: CRUD Functions
 // ================================================================
 
-// NEW: Add Profile Function
 async function addProfile() {
   const name = document.getElementById('input-name').value.trim();
   if (!name) return setStatus('Error: Profile name field is empty.', true);
@@ -81,7 +80,6 @@ async function addProfile() {
   }
 }
 
-// NEW: Lookup Profile Function
 async function lookupProfile() {
   const searchName = document.getElementById('input-name').value.trim();
   if (!searchName) {
@@ -173,6 +171,10 @@ async function selectProfile(profileId) {
 
     displayProfile(profile, friends);
 
+    if (window.innerWidth < 768) {
+        document.getElementById('profile-pic').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
   } catch (err) {
     setStatus(`Error selecting profile: ${err.message}`, true);
   }
@@ -214,7 +216,6 @@ async function changeStatus() {
   }
 }
 
-// NEW: Change Quote Function
 async function changeQuote() {
   if (!currentProfileId) return setStatus('Error: No profile is selected.', true);
   const newQuote = document.getElementById('input-quote').value.trim();

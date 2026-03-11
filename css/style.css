@@ -1,71 +1,127 @@
 /* css/style.css */
 
-/* Bootstrap CSS custom property overrides */
 :root {
   --font-heading: 'Source Serif 4', Georgia, serif;
   --font-body: 'DM Sans', system-ui, sans-serif;
-  --clr-header-bg: #1e3a6e;
-  --clr-page-bg: #dde3ec;
-  --clr-panel-bg: #f7f8fa;
-  --clr-panel-border: #c8cdd8;
-  --clr-blue: #2456b4;
+  --clr-header-bg: #2b4c8a; /* Matched to screenshot */
+  --clr-page-bg: #e2e8f0;
+  --clr-panel-bg: #ffffff;
+  --clr-panel-border: #cbd5e1;
+  --clr-blue: #2563eb;
+  --header-h: 50px;
+  --statusbar-h: 30px;
 }
 
-html { 
+html, body { 
   scroll-behavior: smooth; 
-}
-
-/* Application wrapper: full-height flex column layout */
-#app-wrapper {
-  height: calc(100% - var(--header-h));
+  height: 100vh;
+  margin: 0;
+  background-color: var(--clr-page-bg);
+  font-family: var(--font-body);
   display: flex;
   flex-direction: column;
 }
 
-/* Panel card styling */
-.sn-panel { /* custom panel card */
-  background: var(--clr-panel-bg);
-  border: 1px solid var(--clr-panel-border);
-  border-radius: var(--radius-lg);
-  padding: 1rem 1.1rem;
-  flex: 1; 
-  min-height: 0; 
-  overflow: hidden;
+.font-serif {
+  font-family: var(--font-heading);
 }
 
-/* Profile picture circular display */
-#profile-pic, .profile-thumb {
-  width: 96px;
-  height: 96px;
-  object-fit: cover;
+#app-header {
+  background-color: var(--clr-header-bg);
+  min-height: var(--header-h);
 }
 
-/* Profile picture hover effect */
-#profile-pic:hover {
-  transform: scale(1.05);
-  transition: transform 0.2s ease;
-}
-
-/* Friends list item in centre panel */
-#friends-list .friend-entry {
-  padding: 0.4rem 0.75rem;
-  font-size: 0.9rem;
-}
-
-/* Active profile highlight in left panel */
-#profile-list .profile-item.active {
-  background: var(--clr-list-active);
-  border-color: var(--clr-blue);
-  color: #ffffff;
-}
-
-/* Status bar at bottom */
 #status-bar {
-  background: var(--clr-status-bg);
-  height: var(--statusbar-h);
-  font-size: 0.82rem;
+  background-color: var(--clr-header-bg);
+  min-height: var(--statusbar-h);
+  font-size: 0.8rem;
   font-style: italic;
   display: flex;
   align-items: center;
-  padding: 0.5rem 1rem;
+  padding: 0 1rem;
+}
+
+#app-wrapper {
+  overflow: hidden;
+}
+
+/* Panel card styling */
+.sn-panel { 
+  background: var(--clr-panel-bg);
+  border: 1px solid var(--clr-panel-border);
+  border-radius: 6px;
+  padding: 1.25rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.sn-panel-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #2b4c8a;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.sn-label {
+  font-size: 0.8rem;
+  color: #475569;
+  margin-bottom: 0.25rem;
+}
+
+.sn-btn-blue {
+  background-color: #2b4c8a;
+  color: white;
+  border: none;
+}
+.sn-btn-blue:hover {
+  background-color: #1e3a6e;
+  color: white;
+}
+
+.sn-textbox {
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.9rem;
+  min-height: 40px;
+  background-color: #fff;
+}
+
+/* Profile picture display */
+.profile-thumb {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+/* Profile List Item */
+.profile-item {
+  cursor: pointer;
+  border: none;
+  border-bottom: 1px solid #f1f5f9;
+  border-radius: 0 !important;
+  display: flex;
+  align-items: center;
+}
+
+.profile-item:hover {
+  background-color: #f8fafc;
+}
+
+.profile-item.active {
+  background-color: var(--clr-blue) !important;
+  color: white !important;
+  border-color: var(--clr-blue) !important;
+}
+
+.list-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 10px;
 }

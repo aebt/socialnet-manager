@@ -2,7 +2,6 @@
 // Section 1: Supabase Client Initialization
 // ================================================================
 
-// The supabase global object is made available by the CDN script
 const { createClient } = supabase;
 
 const SUPABASE_URL = 'https://evtndesnxsaohrazezsv.supabase.co';
@@ -22,15 +21,16 @@ function setStatus(message, isError = false) {
   const bar = document.getElementById('status-message');
   const footer = document.getElementById('status-bar');
   bar.textContent = message;
-  footer.style.background = isError ? '#6b1a1a' : 'var(--clr-status-bg)';
-  footer.style.color = isError ? '#ffcccc' : 'var(--clr-status-text)';
+  // Adjusted colors slightly to match the theme
+  footer.style.background = isError ? '#8b0000' : 'var(--clr-header-bg)';
+  footer.style.color = isError ? '#ffcccc' : '#ffffff';
 }
 
 function clearCentrePanel() {
   document.getElementById('profile-pic').src = 'resources/images/default.png';
   document.getElementById('profile-name').textContent = 'No Profile Selected';
-  document.getElementById('profile-status').textContent = '--';
-  document.getElementById('profile-quote').textContent = '--';
+  document.getElementById('profile-status').innerHTML = '&mdash;';
+  document.getElementById('profile-quote').innerHTML = '&mdash;';
   document.getElementById('friends-list').innerHTML = '';
   currentProfileId = null;
 }
@@ -53,25 +53,73 @@ function renderFriendsList(friends) {
     return;
   }
   friends.forEach(f => {
-    const div = document.createElement('div');
-    div.className = 'list-group-item';
-    div.textContent = f.name || f.profiles?.name; // Depending on your join alias
-    list.appendChild(div);
+    const p = document.createElement('p');
+    p.className = 'mb-1'; // Keeps it compact like the screenshot
+    p.textContent = f.name || f.profiles?.name; 
+    list.appendChild(p);
   });
 }
 
 // ================================================================
 // Section 4: CRUD Functions
 // ================================================================
+
+// NEW: Add Profile Function
+async function addProfile() {
+  const name = document.getElementById('input-name').value.trim();
+  if (!name) return setStatus('Error: Profile name field is empty.', true);
+
+  try {
+    const { error } = await db.from('profiles').insert([{ name: name }]);
+    if (error) throw error;
+    
+    document.getElementById('input-name').value = '';
+    await loadProfileList();
+    setStatus(`Profile "${name}" added successfully.`);
+  } catch (err) {
+    setStatus(`Error adding profile: ${err.message}`, true);
+  }
+}
+
+// NEW: Lookup Profile Function
+async function lookupProfile() {
+  const searchName = document.getElementById('input-name').value.trim();
+  if (!searchName) {
+      await loadProfileList(); // If empty, reload all
+      return;
+  }
+  
+  try {
+    const { data, error } = await db
+      .from('profiles')
+      .select('id, name, picture')
+      .ilike('name', `%${searchName}%`)
+      .order('name', { ascending: true });
+
+    if (error) throw error;
+    renderProfileList(data);
+    setStatus(`Found ${data.length} profile(s) matching "${searchName}".`);
+  } catch (err) {
+    setStatus(`Error looking up profile: ${err.message}`, true);
+  }
+}
+
 async function loadProfileList() {
   try {
     const { data, error } = await db
       .from('profiles')
-      .select('id, name')
+      .select('id, name, picture')
       .order('name', { ascending: true });
 
     if (error) throw error;
+    renderProfileList(data);
+  } catch (err) {
+    setStatus(`Error loading profiles: ${err.message}`, true);
+  }
+}
 
+// Helper to render the left panel list items
+function renderProfileList(data) {
     const container = document.getElementById('profile-list');
     container.innerHTML = '';
 
@@ -82,16 +130,23 @@ async function loadProfileList() {
 
     data.forEach(profile => {
       const row = document.createElement('div');
-      row.className = 'profile-item list-group-item list-group-item-action';
-      row.textContent = profile.name;
+      row.className = 'profile-item list-group-item';
       row.dataset.id = profile.id;
+      
+      // Added mini avatar to match screenshot
+      const img = document.createElement('img');
+      img.src = profile.picture || 'resources/images/default.png';
+      img.className = 'list-avatar';
+      
+      const span = document.createElement('span');
+      span.textContent = profile.name;
+      
+      row.appendChild(img);
+      row.appendChild(span);
+      
       row.addEventListener('click', () => selectProfile(profile.id));
       container.appendChild(row);
     });
-
-  } catch (err) {
-    setStatus(`Error loading profiles: ${err.message}`, true);
-  }
 }
 
 async function selectProfile(profileId) {
@@ -124,15 +179,14 @@ async function selectProfile(profileId) {
 }
 
 async function deleteProfile() {
-  if (!currentProfileId) {
-    setStatus('Error: No profile is selected. Click a profile in the list first.', true);
-    return;
-  }
+  if (!currentProfileId) return setStatus('Error: No profile is selected. Click a profile in the list first.', true);
+  
   const name = document.getElementById('profile-name').textContent;
   if (!window.confirm(`Delete the profile for "${name}"? This cannot be undone.`)) {
     setStatus('Deletion cancelled.');
     return;
   }
+  
   try {
     const { error } = await db.from('profiles').delete().eq('id', currentProfileId);
     if (error) throw error;
@@ -160,6 +214,23 @@ async function changeStatus() {
   }
 }
 
+// NEW: Change Quote Function
+async function changeQuote() {
+  if (!currentProfileId) return setStatus('Error: No profile is selected.', true);
+  const newQuote = document.getElementById('input-quote').value.trim();
+  if (!newQuote) return setStatus('Error: Quote field is empty.', true);
+
+  try {
+    const { error } = await db.from('profiles').update({ quote: newQuote }).eq('id', currentProfileId);
+    if (error) throw error;
+    document.getElementById('profile-quote').textContent = newQuote;
+    document.getElementById('input-quote').value = '';
+    setStatus('Quote updated.');
+  } catch (err) {
+    setStatus(`Error updating quote: ${err.message}`, true);
+  }
+}
+
 async function changePicture() {
   if (!currentProfileId) return setStatus('Error: No profile is selected.', true);
   const newPicture = document.getElementById('input-picture').value.trim();
@@ -170,6 +241,7 @@ async function changePicture() {
     if (error) throw error;
     document.getElementById('profile-pic').src = newPicture;
     document.getElementById('input-picture').value = '';
+    await loadProfileList(); // Refresh list to update mini avatar
     setStatus('Picture updated.');
   } catch (err) {
     setStatus(`Error updating picture: ${err.message}`, true);
@@ -209,7 +281,7 @@ async function addFriend() {
 
 async function removeFriend() {
   if (!currentProfileId) return setStatus('Error: No profile is selected.', true);
-  const friendName = document.getElementById('input-friend').value.trim(); // Reusing the same input for simplicity
+  const friendName = document.getElementById('input-friend').value.trim(); 
   if (!friendName) return setStatus('Error: Friend name field is empty.', true);
 
   try {
@@ -236,14 +308,30 @@ async function removeFriend() {
 // ================================================================
 document.addEventListener('DOMContentLoaded', async () => {
   // Setup standard listeners
+  document.getElementById('btn-add').addEventListener('click', addProfile);
+  document.getElementById('btn-lookup').addEventListener('click', lookupProfile);
   document.getElementById('btn-delete').addEventListener('click', deleteProfile);
+  
   document.getElementById('btn-status').addEventListener('click', changeStatus);
+  document.getElementById('btn-quote').addEventListener('click', changeQuote);
   document.getElementById('btn-picture').addEventListener('click', changePicture);
+  
   document.getElementById('btn-add-friend').addEventListener('click', addFriend);
   document.getElementById('btn-remove-friend').addEventListener('click', removeFriend);
+  
+  // Optional: Exit button functionality
+  document.getElementById('btn-exit').addEventListener('click', () => {
+      if(confirm('Are you sure you want to exit?')) {
+          window.close(); // Note: may not work depending on browser security settings
+      }
+  });
 
   // Enter key shortcuts
+  document.getElementById('input-name').addEventListener('keydown', e => { if (e.key === 'Enter') lookupProfile() });
   document.getElementById('input-status').addEventListener('keydown', e => { if (e.key === 'Enter') changeStatus() });
+  document.getElementById('input-quote').addEventListener('keydown', e => { if (e.key === 'Enter') changeQuote() });
+  document.getElementById('input-picture').addEventListener('keydown', e => { if (e.key === 'Enter') changePicture() });
+  document.getElementById('input-friend').addEventListener('keydown', e => { if (e.key === 'Enter') addFriend() });
 
   await loadProfileList();
   setStatus('Ready. Select a profile from the list or add a new one.');

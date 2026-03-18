@@ -326,6 +326,56 @@ async function removeFriend() {
   }
 }
 
+async function uploadFileToBlob(file) {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    // Browser automatically sets Content-Type boundary for FormData
+    const response = await fetch('/api/upload-avatar', {
+        method: 'POST',
+        body: formData
+    });
+
+    // Safe Response Parsing
+    const rawText = await response.text();
+    let result;
+    try {
+        result = JSON.parse(rawText);
+    } catch {
+        const preview = rawText.slice(0, 200).replace(/\s+/g, " ").trim();
+        throw new Error("HTTP " + response.status + " (not JSON). | Response: " + preview);
+    }
+
+    if (!response.ok) {
+        throw new Error(result.error || "Upload failed");
+    }
+
+    return result.url;
+}
+
+// Example usage to hook into your UI:
+async function handlePictureUpdate(profileId, fileInput) {
+    try {
+        const file = fileInput.files[0];
+        if (!file) return;
+
+        const newUrl = await uploadFileToBlob(file);
+
+        // Update Supabase
+        const { error } = await db
+            .from('profiles')
+            .update({ picture: newUrl })
+            .eq('id', profileId);
+
+        if (error) throw error;
+        
+        // Refresh UI here
+        console.log("Picture updated to:", newUrl);
+    } catch (err) {
+        console.error("Upload error:", err);
+    }
+}
+
 // ================================================================
 // Section 6: Event Listener Setup
 // ================================================================
